@@ -58,4 +58,50 @@ class PostControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewIs('posts.show');
     }
+
+    /**
+     * @test
+     */
+    public function it_can_edit_a_post(): void
+    {
+        $post = Post::factory()->create();
+        $response = $this->get(route('posts.edit', $post));
+
+        $response->assertStatus(200);
+        $response->assertViewIs('posts.edit');
+        $response->assertViewHas('post', $post);
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_update_a_post(): void
+    {
+        $post = Post::factory()->create();
+
+        $updatedData = [
+            'title' => 'Test Title',
+            'content' => 'Test Content',
+            'img_path' => 'Test Image Path',
+        ];
+
+        $response = $this->put(route('posts.update', $post), $updatedData);
+
+        $response->assertStatus(302);
+        $response->assertRedirect(route('posts.show', $post));
+        $this->assertDatabaseHas('posts', $updatedData);
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_delete_a_post(): void
+    {
+        $post = Post::factory()->create();
+        $response = $this->delete(route('posts.destroy', $post));
+
+        $response->assertStatus(302);
+        $response->assertRedirect(route('posts.index'));
+        $this->assertDatabaseMissing('posts', ['id' => $post->id]);
+    }
 }
