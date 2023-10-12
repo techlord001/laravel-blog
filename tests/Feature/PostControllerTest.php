@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -27,7 +28,9 @@ class PostControllerTest extends TestCase
      */
     public function it_can_display_create_page(): void
     {
-        $response = $this->get(route('posts.create'));
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('posts.create'));
 
         $response->assertStatus(200);
         $response->assertViewIs('posts.create');
@@ -64,8 +67,12 @@ class PostControllerTest extends TestCase
      */
     public function it_can_edit_a_post(): void
     {
-        $post = Post::factory()->create();
-        $response = $this->get(route('posts.edit', $post));
+        $user = User::factory()->create();
+        $post = Post::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('posts.edit', $post));
 
         $response->assertStatus(200);
         $response->assertViewIs('posts.edit');
@@ -77,7 +84,10 @@ class PostControllerTest extends TestCase
      */
     public function it_can_update_a_post(): void
     {
-        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $post = Post::factory()->create([
+            'user_id' => $user->id,
+        ]);
 
         $updatedData = [
             'title' => 'Test Title',
@@ -85,7 +95,7 @@ class PostControllerTest extends TestCase
             'img_path' => 'Test Image Path',
         ];
 
-        $response = $this->put(route('posts.update', $post), $updatedData);
+        $response = $this->actingAs($user)->put(route('posts.update', $post), $updatedData);
 
         $response->assertStatus(302);
         $response->assertRedirect(route('posts.show', $post));
@@ -97,8 +107,12 @@ class PostControllerTest extends TestCase
      */
     public function it_can_delete_a_post(): void
     {
-        $post = Post::factory()->create();
-        $response = $this->delete(route('posts.destroy', $post));
+        $user = User::factory()->create();
+        $post = Post::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->delete(route('posts.destroy', $post));
 
         $response->assertStatus(302);
         $response->assertRedirect(route('posts.index'));

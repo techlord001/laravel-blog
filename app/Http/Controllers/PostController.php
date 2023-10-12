@@ -26,7 +26,6 @@ class PostController extends Controller
      */
     public function create()
     {
-        $this->authorize('create', Post::class);
         return view('posts.create');
     }
 
@@ -42,9 +41,10 @@ class PostController extends Controller
             'img_path' => 'nullable|string|max:255',
         ]);
 
+        // Associate the authenticated user's ID at the time of post creation
+        $validated['user_id'] = auth()->id();
+
         $post = Post::create($validated);
-        $post->user()->associate(auth()->user());
-        $post->save();
 
         return redirect()->route('posts.show', $post);
     }
